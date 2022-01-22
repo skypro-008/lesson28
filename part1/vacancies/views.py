@@ -33,10 +33,7 @@ class VacancyDetailView(DetailView):
     model = Vacancy
 
     def get(self, request, *args, **kwargs):
-        try:
-            vacancy = self.get_object()
-        except Vacancy.DoesNotExist:
-            return JsonResponse({"error": "Not found"}, status=404)
+        vacancy = self.get_object()
 
         return JsonResponse({
             "id": vacancy.id,
@@ -67,11 +64,6 @@ class VacancyCreateView(CreateView):
             skill_obj, _ = Skill.objects.get_or_create(name=skill)
             self.object.skills.add(skill_obj)
 
-        try:
-            vacancy.full_clean()
-        except ValidationError as e:
-            return JsonResponse(e.message_dict, status=422)
-
         vacancy.save()
         return JsonResponse({
             "id": vacancy.id,
@@ -95,11 +87,6 @@ class VacancyUpdateView(UpdateView):
         for skill in vacancy_data["skills"]:
             skill_obj, _ = Skill.objects.get_or_create(name=skill)
             self.object.skills.add(skill_obj)
-
-        try:
-            self.object.full_clean()
-        except ValidationError as e:
-            return JsonResponse(e.message_dict, status=422)
 
         self.object.save()
         return JsonResponse({
