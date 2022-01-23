@@ -15,11 +15,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='vacancy',
             name='created',
-            field=models.DateField(auto_now_add=True, validators=[vacancies.models.check_date_not_past]),
+            field=models.DateField(auto_now_add=True),
         ),
         migrations.AlterField(
             model_name='vacancy',
             name='slug',
-            field=models.SlugField(validators=[django.core.validators.MinLengthValidator(3)]),
+            field=models.SlugField(),
         ),
     ]

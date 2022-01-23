@@ -1,7 +1,8 @@
 import json
 
-from django.core.exceptions import ValidationError
+from django.contrib.auth.models import User
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
@@ -55,16 +56,18 @@ class VacancyCreateView(CreateView):
         vacancy_data = json.loads(request.body)
 
         vacancy = Vacancy()
-        vacancy.user_id = vacancy_data["user_id"]
+        # vacancy.user_id = vacancy_data["user_id"]
         vacancy.slug = vacancy_data["slug"]
         vacancy.text = vacancy_data["text"]
         vacancy.status = vacancy_data["status"]
 
+        vacancy.user = get_object_or_404(User, pk=vacancy_data["user_id"])
+        vacancy.save()
+
         for skill in vacancy_data["skills"]:
             skill_obj, _ = Skill.objects.get_or_create(name=skill)
-            self.object.skills.add(skill_obj)
+            vacancy.skills.add(skill_obj)
 
-        vacancy.save()
         return JsonResponse({
             "id": vacancy.id,
             "text": vacancy.text,
