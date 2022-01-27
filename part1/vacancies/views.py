@@ -56,17 +56,10 @@ class VacancyCreateView(CreateView):
         vacancy_data = json.loads(request.body)
 
         vacancy = Vacancy()
-        # vacancy.user_id = vacancy_data["user_id"]
+        vacancy.user_id = vacancy_data["user_id"]
         vacancy.slug = vacancy_data["slug"]
         vacancy.text = vacancy_data["text"]
         vacancy.status = vacancy_data["status"]
-
-        vacancy.user = get_object_or_404(User, pk=vacancy_data["user_id"])
-        vacancy.save()
-
-        for skill in vacancy_data["skills"]:
-            skill_obj, _ = Skill.objects.get_or_create(name=skill)
-            vacancy.skills.add(skill_obj)
 
         return JsonResponse({
             "id": vacancy.id,
@@ -88,7 +81,10 @@ class VacancyUpdateView(UpdateView):
         self.object.status = vacancy_data["status"]
 
         for skill in vacancy_data["skills"]:
-            skill_obj, _ = Skill.objects.get_or_create(name=skill)
+            try:
+                skill_obj = Skill.objects.get(name=skill)
+            except Skill.DoesNotExist:
+                return JsonResponse({"error": "Skill not found"}, status=404)
             self.object.skills.add(skill_obj)
 
         self.object.save()
