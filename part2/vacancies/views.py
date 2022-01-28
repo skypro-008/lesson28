@@ -2,6 +2,7 @@ import json
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.paginator import Paginator
 from django.db.models import Count, Avg
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -25,17 +26,9 @@ class VacancyListView(ListView):
 
         self.object_list = self.object_list.select_related('user').prefetch_related('skills')
 
-        total_vacancies = self.object_list.count()
-        # self.object_list = self.object_list.order_by('name')
-
-        page = int(request.GET.get("page", 0))
-        offset = page * settings.TOTAL_ON_PAGE
-        if offset > total_vacancies:
-            self.object_list = []
-        elif offset:
-            self.object_list = self.object_list[offset:settings.TOTAL_ON_PAGE]
-        else:
-            self.object_list = self.object_list[:settings.TOTAL_ON_PAGE]
+        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
         vacancies = []
         for vacancy in self.object_list:
@@ -49,8 +42,8 @@ class VacancyListView(ListView):
 
         response = {
             "items": vacancies,
-            "total": total_vacancies,
-            "per_page": settings.TOTAL_ON_PAGE,
+            "num_pages": page_obj.paginator.num_pages,
+            "total": page_obj.paginator.count,
         }
         return JsonResponse(response, safe=False)
 
