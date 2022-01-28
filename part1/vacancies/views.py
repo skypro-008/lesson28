@@ -55,11 +55,12 @@ class VacancyCreateView(CreateView):
     def post(self, request, *args, **kwargs):
         vacancy_data = json.loads(request.body)
 
-        vacancy = Vacancy()
-        vacancy.user_id = vacancy_data["user_id"]
-        vacancy.slug = vacancy_data["slug"]
-        vacancy.text = vacancy_data["text"]
-        vacancy.status = vacancy_data["status"]
+        vacancy = Vacancy.objects.create(
+            user_id=vacancy_data["user_id"],
+            slug=vacancy_data["slug"],
+            text=vacancy_data["text"],
+            status=vacancy_data["status"],
+        )
 
         return JsonResponse({
             "id": vacancy.id,
