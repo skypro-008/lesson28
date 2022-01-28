@@ -134,17 +134,11 @@ class VacancyDeleteView(DeleteView):
 
 class UserVacancyDetailView(View):
     def get(self, request):
-        total_users = User.objects.count()
         users_qs = User.objects.annotate(vacancies=Count('vacancy'))
 
-        page = int(request.GET.get("page", 0))
-        offset = page * settings.TOTAL_ON_PAGE
-        if offset > total_users:
-            users_qs = []
-        elif offset:
-            users_qs = users_qs[offset:settings.TOTAL_ON_PAGE]
-        else:
-            users_qs = users_qs[:settings.TOTAL_ON_PAGE]
+        paginator = Paginator(users_qs, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
 
         users = []
         for user in users_qs:
@@ -157,7 +151,7 @@ class UserVacancyDetailView(View):
         response = {
             "items": users,
             "avg": users_qs.aggregate(Avg('vacancies')),
-            "total": total_users,
-            "per_page": settings.TOTAL_ON_PAGE,
+            "num_pages": page_obj.paginator.num_pages,
+            "total": page_obj.paginator.count,
         }
         return JsonResponse(response, safe=False)
